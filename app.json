@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "native",
+    "slug": "native",
+    "scheme": "acme",
+    "userInterfaceStyle": "automatic",
+    "orientation": "portrait",
+    "ios": {
+      "supportsTablet": true
+    },
+    "web": {
+      "output": "static",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
