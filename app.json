@@ -1,21 +1,22 @@
 {
   "expo": {
+    "name": "native",
+    "slug": "native",
     "scheme": "acme",
     "userInterfaceStyle": "automatic",
-    "orientation": "default",
+    "orientation": "portrait",
+    "ios": {
+      "supportsTablet": true
+    },
     "web": {
       "output": "static",
       "bundler": "metro"
     },
     "plugins": [
-      [
-        "expo-router",
-        {
-          "origin": "https://n"
-        }
-      ]
+      "expo-router"
     ],
-    "name": "native",
-    "slug": "native"
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
