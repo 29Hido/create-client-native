@@ -2,7 +2,7 @@ import { View } from "react-native";
 
 export default function Main({ children }) {
     return (
-        <View className="flex flex-1 px-6 md:px-8">
+        <View className="flex flex-1 py-16" style={{ position: 'relative', marginHorizontal: '3%' }}>
             {children}
         </View>
     )
