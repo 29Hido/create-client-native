@@ -4,12 +4,31 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect } from "react";
 import { useAppSelector } from "@/lib/hooks";
 import { useDispatch } from "react-redux";
-import { setEditModalVisible } from "@/lib/slices/bookSlice";
+import { setData, setEditModalVisible, setView } from "@/lib/slices/bookSlice";
+import { useLazyDeleteQuery, useLazyGetAllQuery } from "@/lib/api/bookApi";
 
 export default function EditModal() {
     const isVisible = useAppSelector(state => state.book.editModalVisible);
     const currentData = useAppSelector(state => state.book.currentData);
+    const page = useAppSelector(state => state.book.page);
+
+    const [deleteQuery] = useLazyDeleteQuery();
+    const [getAll] = useLazyGetAllQuery();
     const dispatch = useDispatch();
+
+    function handleDelete() {
+        deleteQuery(currentData.id)
+            .unwrap()
+            .then(() => {
+                getAll(page)
+                    .unwrap()
+                    .then(fulfilled => {
+                        dispatch(setEditModalVisible(false));
+                        dispatch(setView(fulfilled["hydra:view"]));
+                        dispatch(setData(fulfilled["hydra:member"]))
+                    });
+            });
+    }
 
     return (
         <Modal
@@ -24,6 +43,7 @@ export default function EditModal() {
                 >
                     <Text>{currentData.title}</Text>
                     <Button title="Close" color={'black'} onPress={() => dispatch(setEditModalVisible(false))} />
+                    <Button title="Delete" color={'red'} onPress={() => handleDelete()} />
                 </View>
             }
         </Modal>

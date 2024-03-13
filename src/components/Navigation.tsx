@@ -14,9 +14,12 @@ export default function Navigation(props: { view: HydraView }) {
     const view = props.view;
     const router = useRouter();
 
+    if (!view) {
+        return (<></>);
+    }
+
     return (
         <View className="py-3 flex flex-row gap-5 items-center justify-center" style={{ position: 'absolute', bottom: 5, minWidth: '100%' }}>
-
             <Pressable onPress={() => {
                 if (view['hydra:last']) router.navigate(view["hydra:first"])
             }}>

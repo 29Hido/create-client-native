@@ -4,7 +4,7 @@ import Main from "@/components/Main";
 import Navigation from "@/components/Navigation";
 import { useLazyGetAllQuery } from "@/lib/api/bookApi";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { setCreateModalVisible, setCurrentData, setData, setEditModalVisible } from "@/lib/slices/bookSlice";
+import { setCreateModalVisible, setCurrentData, setData, setEditModalVisible, setPage, setView } from "@/lib/slices/bookSlice";
 import Book from "@/lib/types/Book";
 import { HydraView } from "@/lib/types/HydraView";
 import { useLocalSearchParams } from "expo-router";
@@ -13,7 +13,7 @@ import { View, Text, Pressable, ScrollView } from "react-native";
 
 export default function Books() {
   const datas = useAppSelector(state => state.book.data);
-  const [view, setView] = useState<HydraView>({});
+  const view = useAppSelector(state => state.book.view);
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
 
   const dispatch = useAppDispatch();
@@ -27,11 +27,11 @@ export default function Books() {
   useEffect(() => {
     const intPage = parseInt(page);
     if (intPage < 0) return;
-
+    dispatch(setPage(intPage));
     getAll(intPage)
       .unwrap()
       .then(fulfilled => {
-        setView(fulfilled["hydra:view"]);
+        dispatch(setView(fulfilled["hydra:view"]));
         dispatch(setData(fulfilled["hydra:member"]));
       })
   }, [page]);

@@ -4,6 +4,7 @@ import Book from '../types/Book';
 import { HydraView } from '../types/HydraView';
 
 interface BookSliceState {
+    page: number;
     data?: Book[];
     currentData?: Book;
     editModalVisible: boolean;
@@ -12,6 +13,7 @@ interface BookSliceState {
 }
 
 const initialState: BookSliceState = {
+    page: 1,
     data: [],
     currentData: null,
     editModalVisible: false,
@@ -23,6 +25,9 @@ export const bookSlice = createSlice({
     name: 'bookSlice',
     initialState,
     reducers: {
+        setPage: (state, action: PayloadAction<number>) => {
+            state.page = action.payload;
+        },
         setData: (state, action: PayloadAction<Book[]>) => {
             state.data = action.payload;
         },
@@ -41,6 +46,6 @@ export const bookSlice = createSlice({
     }
 })
 
-export const { setData, setView, setCurrentData, setEditModalVisible, setCreateModalVisible } = bookSlice.actions;
+export const { setPage, setData, setView, setCurrentData, setEditModalVisible, setCreateModalVisible } = bookSlice.actions;
 
 export default bookSlice.reducer;
