@@ -2,34 +2,30 @@ import { Button, Modal, Pressable, Text, TextInput, View } from "react-native";
 import { useForm, Controller } from 'react-hook-form';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEffect } from "react";
+import { useAppSelector } from "@/lib/hooks";
+import { useDispatch } from "react-redux";
+import { setEditModalVisible } from "@/lib/slices/bookSlice";
 
-export default function EditModal(props: { data: {}, toggleModal: Function, editModalVisible: boolean }) {
-    const { toggleModal, editModalVisible } = props;
-    const { title } = props.data;
+export default function EditModal() {
+    const isVisible = useAppSelector(state => state.book.editModalVisible);
+    const currentData = useAppSelector(state => state.book.currentData);
+    const dispatch = useDispatch();
 
     return (
         <Modal
             animationType="slide"
             transparent={true}
-            visible={editModalVisible}
+            visible={isVisible}
         >
-            <View className="flex p-5 absolute bottom-0 rounded bg-white border border-gray-300" style={{ height: '80%', width: '100%' }}>
-                <View className="flex flex-row items-center justify-between">
-                    <Text className="text-1xl">{title}</Text>
-                    <View className="flex flex-row gap-3">
-                        <Pressable onPress={() => {
-                            alert(`${title} deleted`)
-                            toggleModal()
-                        }}>
-                            <Text className="bg-red-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Delete</Text>
-                        </Pressable>
-                        <Pressable onPress={() => toggleModal()}>
-                            <Text className="bg-cyan-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Close</Text>
-                        </Pressable>
-                    </View>
+            {currentData &&
+                <View
+                    className="flex absolute bottom-0 rounded bg-white border border-gray-300"
+                    style={{ height: '80%', width: '100%', backgroundColor: '#e3e9e5' }}
+                >
+                    <Text>{currentData.title}</Text>
+                    <Button title="Close" color={'black'} onPress={() => dispatch(setEditModalVisible(false))} />
                 </View>
-                <Form existingData={props.data} />
-            </View>
+            }
         </Modal>
     )
 }
