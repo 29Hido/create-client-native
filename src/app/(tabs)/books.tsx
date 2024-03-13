@@ -6,7 +6,6 @@ import { useLazyGetAllQuery } from "@/lib/api/bookApi";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setCreateModalVisible, setCurrentData, setData, setEditModalVisible, setPage, setView } from "@/lib/slices/bookSlice";
 import Book from "@/lib/types/Book";
-import { HydraView } from "@/lib/types/HydraView";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
@@ -50,7 +49,7 @@ export default function Books() {
             datas.map(data => (
               <Pressable onPress={() => toggleEditModal(data)} key={data.id}>
                 <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
-                  <Text>Title: {data.title}</Text>
+                  <Text>Title: {data.name}</Text>
                   <Text>Author: {data.author}</Text>
                   <Text>Rating: {data.rating}</Text>
                 </View>

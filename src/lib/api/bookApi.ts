@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import Book from '../types/Book';
 
 const BASE_URL = `http://localhost:80/books`
 
@@ -19,7 +20,25 @@ export const bookApi = createApi({
                 }
             }
         }),
+        create: builder.query<any, Book>({
+            query: (book) => {
+                return {
+                    url: ``,
+                    method: 'POST',
+                    body: book,
+                }
+            }
+        }),
+        update: builder.query<any, Book>({
+            query: (book) => {
+                return {
+                    url: `/${book.id}`,
+                    method: 'UPDATE',
+                    body: book,
+                }
+            }
+        }),
     })
 });
 
-export const { useLazyGetAllQuery, useLazyDeleteQuery } = bookApi;
+export const { useLazyGetAllQuery, useLazyDeleteQuery, useLazyCreateQuery, useLazyUpdateQuery } = bookApi;
