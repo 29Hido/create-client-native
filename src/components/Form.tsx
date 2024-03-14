@@ -1,6 +1,7 @@
-import { useLazyCreateQuery, useLazyGetAllQuery } from "@/lib/api/bookApi";
+import { useCreateMutation, useLazyGetAllQuery, useUpdateMutation } from "@/lib/api/bookApi";
+import { createErrorLog, createSuccessLog } from "@/lib/factory/logFactory";
 import { useAppSelector } from "@/lib/hooks";
-import { setCreateModalVisible, setData, setView } from "@/lib/slices/bookSlice";
+import { addLog, setData, setModalIsVisible, setView } from "@/lib/slices/bookSlice";
 import Book from "@/lib/types/Book";
 import { useState } from "react";
 import { Controller, SubmitErrorHandler, useForm } from "react-hook-form";
@@ -9,12 +10,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 
 export default function Form() {
-    const [createQuery] = useLazyCreateQuery();
+    const [update] = useUpdateMutation();
+    const [create] = useCreateMutation();
     const [getAll] = useLazyGetAllQuery();
-    const page = useAppSelector(state => state.book.page);
+    const bookData = useAppSelector(state => state.book);
+    const { page, currentData, modalState } = bookData;
     const dispatch = useDispatch();
+    const [errors, setErrors] = useState([]);
+    const submitQuery = modalState.edit ? update : create;
 
-    const initValues: Book = {
+    const initValues: Book = modalState.edit ? currentData : {
         name: '',
         author: '',
         rating: 0,
@@ -24,25 +29,33 @@ export default function Form() {
         defaultValues: initValues
     });
 
-    const [errors, setErrors] = useState([]);
 
     const onSubmit = (data: Book) => {
         intParser(data);
-        createQuery(data)
+        submitQuery(data)
             .unwrap()
             .then(() => {
+                dispatch(addLog(createSuccessLog(`The book has been ${modalState.edit ? 'edited' : 'created'} successfully.`)))
                 getAll(page)
                     .unwrap()
                     .then(fulfilled => {
+                        reset();
                         dispatch(setView(fulfilled["hydra:view"]));
                         dispatch(setData(fulfilled["hydra:member"]));
-                        dispatch(setCreateModalVisible(false));
-                    })
+                        dispatch(setModalIsVisible(false));
+                    });
+            })
+            .catch(error => {
+                if (error.data) {
+                    dispatch(
+                        addLog(createErrorLog(`Error : ${error.data["hydra:description"]}`))
+                    )
+                }
             });
         return;
     };
 
-    function intParser(data: Book) {
+    const intParser = (data: Book) => {
         Object.keys(data).forEach(key => {
             if ((typeof initValues[key] == "number") && !isNaN(parseInt(data[key]))) {
                 data[key] = parseInt(data[key]);
@@ -73,6 +86,7 @@ export default function Form() {
                         <View className="flex flex-row items-center gap-3">
                             <Text>name :</Text>
                             <TextInput
+                                style={{ minWidth: 200 }}
                                 value={value?.toString()}
                                 onChangeText={onChange}
                                 inputMode="text"
@@ -92,6 +106,7 @@ export default function Form() {
                         <View className="flex flex-row items-center gap-3">
                             <Text>author :</Text>
                             <TextInput
+                                style={{ minWidth: 200 }}
                                 value={value?.toString()}
                                 onChangeText={onChange}
                                 inputMode="text"
@@ -111,6 +126,7 @@ export default function Form() {
                         <View className="flex flex-row items-center gap-3">
                             <Text>rating :</Text>
                             <TextInput
+                                style={{ minWidth: 200 }}
                                 value={value?.toString()}
                                 onChangeText={onChange}
                                 inputMode="numeric"
@@ -124,7 +140,7 @@ export default function Form() {
                 />
 
                 <Pressable onPress={handleSubmit(onSubmit, onError)}>
-                    <Text className="bg-cyan-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Create</Text>
+                    <Text className="bg-cyan-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">{modalState.edit ? 'Edit' : 'Create'}</Text>
                 </Pressable>
             </View>
         </SafeAreaView>

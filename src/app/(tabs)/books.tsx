@@ -1,14 +1,14 @@
-import CreateModal from "@/components/CreateModal";
-import EditModal from "@/components/EditModal";
+import BookLogsRenderer from "@/components/BookLogsRenderer";
+import CreateEditModal from "@/components/CreateEditModal";
 import Main from "@/components/Main";
 import Navigation from "@/components/Navigation";
 import { useLazyGetAllQuery } from "@/lib/api/bookApi";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { setCreateModalVisible, setCurrentData, setData, setEditModalVisible, setPage, setView } from "@/lib/slices/bookSlice";
+import { setCurrentData, setData, setModalIsEdit, setModalIsVisible, setPage, setView } from "@/lib/slices/bookSlice";
 import Book from "@/lib/types/Book";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { useEffect } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 export default function Books() {
   const datas = useAppSelector(state => state.book.data);
@@ -20,8 +20,14 @@ export default function Books() {
 
   const toggleEditModal = (data: Book) => {
     dispatch(setCurrentData(data));
-    dispatch(setEditModalVisible(true));
+    dispatch(setModalIsVisible(true));
+    dispatch(setModalIsEdit(true));
   };
+
+  const toggleCreateModal = () => {
+    dispatch(setModalIsVisible(true));
+    dispatch(setModalIsEdit(false));
+  }
 
   useEffect(() => {
     const intPage = parseInt(page);
@@ -39,11 +45,12 @@ export default function Books() {
     <Main>
       <View className="py-3 flex flex-row items-center justify-between">
         <Text className="text-3xl">Books List</Text>
-        <Pressable onPress={() => dispatch(setCreateModalVisible(true))}>
+        <Pressable onPress={() => toggleCreateModal()}>
           <Text className="bg-cyan-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Create</Text>
         </Pressable>
       </View>
       <ScrollView>
+        <BookLogsRenderer />
         <View>
           {
             datas.map(data => (
@@ -57,8 +64,7 @@ export default function Books() {
             ))
           }
         </View>
-        <EditModal />
-        <CreateModal />
+        <CreateEditModal />
       </ScrollView>
       <Navigation view={view} />
     </Main >

@@ -12,7 +12,7 @@ export const bookApi = createApi({
                 return `?page=${page}`
             }
         }),
-        delete: builder.query<any, number>({
+        delete: builder.mutation<any, number>({
             query: (id) => {
                 return {
                     url: `/${id}`,
@@ -20,7 +20,7 @@ export const bookApi = createApi({
                 }
             }
         }),
-        create: builder.query<any, Book>({
+        create: builder.mutation<any, Book>({
             query: (book) => {
                 return {
                     url: ``,
@@ -29,11 +29,11 @@ export const bookApi = createApi({
                 }
             }
         }),
-        update: builder.query<any, Book>({
+        update: builder.mutation<any, Book>({
             query: (book) => {
                 return {
                     url: `/${book.id}`,
-                    method: 'UPDATE',
+                    method: 'PUT',
                     body: book,
                 }
             }
@@ -41,4 +41,4 @@ export const bookApi = createApi({
     })
 });
 
-export const { useLazyGetAllQuery, useLazyDeleteQuery, useLazyCreateQuery, useLazyUpdateQuery } = bookApi;
+export const { useLazyGetAllQuery, useDeleteMutation, useCreateMutation, useUpdateMutation } = bookApi;
