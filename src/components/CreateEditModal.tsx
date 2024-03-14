@@ -14,10 +14,10 @@ export default function CreateEditModal() {
     const [getAll] = useLazyGetAllQuery();
 
     function handleDelete() {
-        deleteMutation(currentData.id)
+        deleteMutation(currentData['@id'])
             .unwrap()
             .then(() => {
-                dispatch(addLog(createSuccessLog(`Book ${currentData.id} has been deleted successfully.`)))
+                dispatch(addLog(createSuccessLog(`Book ${currentData['@id']} has been deleted successfully.`)))
                 getAll(page)
                     .unwrap()
                     .then(fulfilled => {
@@ -33,7 +33,6 @@ export default function CreateEditModal() {
             });
     }
 
-    console.log(currentData);
     return (
         <Modal
             animationType="slide"

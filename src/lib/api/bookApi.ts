@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import Book from '../types/Book';
 
-const BASE_URL = `http://localhost:80/books`
+const BASE_URL = `http://localhost:80`
 
 export const bookApi = createApi({
     reducerPath: 'bookApi',
@@ -9,13 +9,13 @@ export const bookApi = createApi({
     endpoints: builder => ({
         getAll: builder.query<any, number>({
             query: (page) => {
-                return `?page=${page}`
+                return `/books?page=${page}`
             }
         }),
-        delete: builder.mutation<any, number>({
+        delete: builder.mutation<any, string>({
             query: (id) => {
                 return {
-                    url: `/${id}`,
+                    url: `${id}`,
                     method: 'DELETE'
                 }
             }
@@ -23,7 +23,7 @@ export const bookApi = createApi({
         create: builder.mutation<any, Book>({
             query: (book) => {
                 return {
-                    url: ``,
+                    url: `/books`,
                     method: 'POST',
                     body: book,
                 }
@@ -32,7 +32,7 @@ export const bookApi = createApi({
         update: builder.mutation<any, Book>({
             query: (book) => {
                 return {
-                    url: `/${book.id}`,
+                    url: `${book['@id']}`,
                     method: 'PUT',
                     body: book,
                 }

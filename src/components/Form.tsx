@@ -20,6 +20,7 @@ export default function Form() {
     const submitQuery = modalState.edit ? update : create;
 
     const initValues: Book = modalState.edit ? currentData : {
+        '@id': '',
         name: '',
         author: '',
         rating: 0,

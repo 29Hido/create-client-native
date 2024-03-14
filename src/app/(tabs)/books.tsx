@@ -54,8 +54,9 @@ export default function Books() {
         <View>
           {
             datas.map(data => (
-              <Pressable onPress={() => toggleEditModal(data)} key={data.id}>
+              <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
                 <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
+                  <Text>ID: {data['@id']}</Text>
                   <Text>Title: {data.name}</Text>
                   <Text>Author: {data.author}</Text>
                   <Text>Rating: {data.rating}</Text>
