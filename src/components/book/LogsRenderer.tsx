@@ -4,7 +4,7 @@ import { Log } from "@/lib/types/Logs";
 import { Pressable, Text, View } from "react-native";
 import { useDispatch } from "react-redux";
 
-export default function BookLogsRenderer() {
+export default function LogsRenderer() {
     const logs = useAppSelector(state => state.book.logs);
     const { errors, successes } = logs;
 

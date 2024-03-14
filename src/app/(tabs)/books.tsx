@@ -1,7 +1,7 @@
-import BookLogsRenderer from "@/components/BookLogsRenderer";
-import CreateEditModal from "@/components/CreateEditModal";
 import Main from "@/components/Main";
 import Navigation from "@/components/Navigation";
+import CreateEditModal from "@/components/book/CreateEditModal";
+import LogsRenderer from "@/components/book/LogsRenderer";
 import { useLazyGetAllQuery } from "@/lib/api/bookApi";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setCurrentData, setData, setModalIsEdit, setModalIsVisible, setPage, setView } from "@/lib/slices/bookSlice";
@@ -50,7 +50,7 @@ export default function Books() {
         </Pressable>
       </View>
       <ScrollView>
-        <BookLogsRenderer />
+        <LogsRenderer />
         <View>
           {
             datas.map(data => (
