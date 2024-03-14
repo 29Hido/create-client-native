@@ -2,23 +2,35 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import Book from '../types/Book';
 import { HydraView } from '../types/HydraView';
+import { Log, NewLog } from '../types/Logs';
 
 interface BookSliceState {
     page: number;
-    data?: Book[];
+    data: Book[];
     currentData?: Book;
-    editModalVisible: boolean;
-    createModalVisible: boolean;
+    modalState: ModalState;
     view: HydraView;
+    logs: Log;
+}
+
+interface ModalState {
+    open: boolean;
+    edit: boolean;
 }
 
 const initialState: BookSliceState = {
     page: 1,
     data: [],
     currentData: null,
-    editModalVisible: false,
-    createModalVisible: false,
+    modalState: {
+        open: false,
+        edit: false,
+    },
     view: {},
+    logs: {
+        errors: [],
+        successes: [],
+    }
 }
 
 export const bookSlice = createSlice({
@@ -37,15 +49,21 @@ export const bookSlice = createSlice({
         setCurrentData: (state, action: PayloadAction<Book>) => {
             state.currentData = action.payload;
         },
-        setEditModalVisible: (state, action: PayloadAction<boolean>) => {
-            state.editModalVisible = action.payload;
+        setModalIsVisible: (state, action: PayloadAction<boolean>) => {
+            state.modalState.open = action.payload;
         },
-        setCreateModalVisible: (state, action: PayloadAction<boolean>) => {
-            state.createModalVisible = action.payload;
-        }
+        setModalIsEdit: (state, action: PayloadAction<boolean>) => {
+            state.modalState.edit = action.payload;
+        },
+        addLog: (state, action: PayloadAction<NewLog>) => {
+            state.logs[action.payload.type] = [...state.logs[action.payload.type], action.payload.message];
+        },
+        cleanLogs: (state, action: PayloadAction<keyof Log>) => {
+            state.logs[action.payload] = [];
+        },
     }
 })
 
-export const { setPage, setData, setView, setCurrentData, setEditModalVisible, setCreateModalVisible } = bookSlice.actions;
+export const { setPage, setData, setView, setCurrentData, setModalIsEdit, setModalIsVisible, addLog, cleanLogs } = bookSlice.actions;
 
 export default bookSlice.reducer;
