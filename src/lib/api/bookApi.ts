@@ -1,11 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import Book from '../types/Book';
-
-const BASE_URL = `http://localhost:80`
+import { ENTRYPOINT } from '@/config/entrypoint';
 
 export const bookApi = createApi({
     reducerPath: 'bookApi',
-    baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
+    baseQuery: fetchBaseQuery({ baseUrl: ENTRYPOINT }),
     endpoints: builder => ({
         getAll: builder.query<any, number>({
             query: (page) => {

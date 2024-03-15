@@ -7,8 +7,9 @@ function NavigationIcon(props: {
     name: React.ComponentProps<typeof FontAwesome>['name'];
     color: string;
 }) {
-    return <FontAwesome size={32} style={{ marginBottom: -3 }} {...props} />;
+    return <FontAwesome size={32} style={iconMargin} {...props} />;
 }
+const iconMargin = { marginBottom: -3 }
 
 export default function Navigation(props: { view: HydraView }) {
     const view = props.view;
@@ -26,7 +27,7 @@ export default function Navigation(props: { view: HydraView }) {
     } = view;
 
     return (
-        <View className="py-3 flex flex-row gap-5 items-center justify-center" style={{ position: 'absolute', bottom: 5, minWidth: '100%' }}>
+        <View className="py-3 flex flex-row gap-5 items-center justify-center" style={styles.container}>
             <Pressable onPress={() => {
                 if (first) router.navigate(first)
             }}>
@@ -52,4 +53,12 @@ export default function Navigation(props: { view: HydraView }) {
             </Pressable>
         </View>
     );
+}
+
+const styles = {
+    container: {
+        position: 'absolute',
+        bottom: 5,
+        minWidth: '100%'
+    }
 }

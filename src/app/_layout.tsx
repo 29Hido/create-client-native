@@ -8,16 +8,14 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={28} style={iconMargin} {...props} />;
 }
+const iconMargin = { marginBottom: -3 }
 
 export default function Layout() {
   return (
     <StoreProvider>
-      <Tabs screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-      }}>
+      <Tabs screenOptions={options}>
         <Tabs.Screen
           name="index"
           options={{
@@ -37,3 +35,8 @@ export default function Layout() {
     </StoreProvider>
   )
 }
+
+const options = {
+  headerShown: false,
+  tabBarShowLabel: false,
+};

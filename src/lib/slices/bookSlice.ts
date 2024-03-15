@@ -21,7 +21,7 @@ interface ModalState {
 const initialState: BookSliceState = {
     page: 1,
     data: [],
-    currentData: null,
+    currentData: undefined,
     modalState: {
         open: false,
         edit: false,

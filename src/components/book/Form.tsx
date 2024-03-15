@@ -87,7 +87,7 @@ export default function Form() {
                         <View className="flex flex-row items-center gap-3">
                             <Text>name :</Text>
                             <TextInput
-                                style={{ minWidth: 200 }}
+                                style={styles.textInput}
                                 value={value?.toString()}
                                 onChangeText={onChange}
                                 inputMode="text"
@@ -107,7 +107,7 @@ export default function Form() {
                         <View className="flex flex-row items-center gap-3">
                             <Text>author :</Text>
                             <TextInput
-                                style={{ minWidth: 200 }}
+                                style={styles.textInput}
                                 value={value?.toString()}
                                 onChangeText={onChange}
                                 inputMode="text"
@@ -127,7 +127,7 @@ export default function Form() {
                         <View className="flex flex-row items-center gap-3">
                             <Text>rating :</Text>
                             <TextInput
-                                style={{ minWidth: 200 }}
+                                style={styles.textInput}
                                 value={value?.toString()}
                                 onChangeText={onChange}
                                 inputMode="numeric"
@@ -146,4 +146,8 @@ export default function Form() {
             </View>
         </SafeAreaView>
     );
+}
+
+const styles = {
+    textInput: { minWidth: 200 }
 }

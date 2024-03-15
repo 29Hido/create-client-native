@@ -41,7 +41,7 @@ export default function CreateEditModal() {
         >
             <View
                 className="flex absolute bottom-0 rounded bg-white border border-gray-300"
-                style={{ height: '80%', width: '100%', backgroundColor: '#e3e9e5' }}
+                style={styles.container}
             >
                 <View className="relative py-12 px-12">
                     <Text className="text-2xl">{modalState.edit ? `Edit Book` : 'Create a new Book'}</Text>
@@ -52,11 +52,16 @@ export default function CreateEditModal() {
                             <Text className="bg-red-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Delete</Text>
                         </Pressable>
                     }
-                    <Pressable style={{ position: 'absolute', right: 5, top: 5 }} onPress={() => dispatch(setModalIsVisible(false))}>
+                    <Pressable style={styles.closeButton} onPress={() => dispatch(setModalIsVisible(false))}>
                         <Text className="bg-black cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Close</Text>
                     </Pressable>
                 </View>
             </View>
         </Modal>
     )
+}
+
+const styles = {
+    container: { height: '80%', width: '100%', backgroundColor: '#e3e9e5' },
+    closeButton: { position: 'absolute', right: 5, top: 5 }
 }
