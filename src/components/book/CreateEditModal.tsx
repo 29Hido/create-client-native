@@ -4,9 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Book from "@/lib/types/Book";
 import { remove } from "@/lib/api/bookApi";
 import { addNotificationFunction } from "@/lib/utils/Logs";
+import { useState } from "react";
+import ConfirmModal from "../ConfirmModal";
 
 export default function CreateEditModal(props: { addNotification: addNotificationFunction, isModalVisible: boolean, isModalEdit: boolean, data?: Book, setIsModalVisible: Function }) {
     const { addNotification, isModalVisible, isModalEdit, data, setIsModalVisible } = props;
+    const [requestDelete, setRequestDelete] = useState(false);
     const queryClient = useQueryClient();
 
     const deleteMutation = useMutation({
@@ -20,6 +23,16 @@ export default function CreateEditModal(props: { addNotification: addNotificatio
         },
     });
 
+    const onAccept = () => {
+        deleteMutation.mutate(data);
+        setIsModalVisible(false);
+        setRequestDelete(false);
+    }
+
+    const onDecline = () => {
+        setRequestDelete(false);
+    }
+
     return (
         <Modal
             animationType="slide"
@@ -31,14 +44,12 @@ export default function CreateEditModal(props: { addNotification: addNotificatio
                 style={styles.container}
             >
                 <View className="relative py-12 px-12">
+                    <ConfirmModal isVisible={requestDelete} onAccept={onAccept} onDecline={onDecline} />
                     <Text className="text-2xl">{isModalEdit ? `Edit Book` : 'Create a new Book'}</Text>
                     {<Form data={data} addNotification={addNotification} isModalEdit={isModalEdit} setIsModalVisible={setIsModalVisible} />}
                     {
                         isModalEdit &&
-                        <Pressable onPress={() => {
-                            deleteMutation.mutate(data);
-                            setIsModalVisible(false);
-                        }}>
+                        <Pressable onPress={() => setRequestDelete(true)}>
                             <Text className="bg-red-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Delete</Text>
                         </Pressable>
                     }
