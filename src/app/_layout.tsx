@@ -2,7 +2,10 @@ import React from 'react';
 import { FontAwesome } from "@expo/vector-icons";
 import "../global.css";
 import { Tabs } from "expo-router";
-import StoreProvider from '@/components/StoreProvider';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -13,8 +16,10 @@ function TabBarIcon(props: {
 const iconMargin = { marginBottom: -3 }
 
 export default function Layout() {
+  const queryClient = new QueryClient();
+
   return (
-    <StoreProvider>
+    <QueryClientProvider client={queryClient}>
       <Tabs screenOptions={options}>
         <Tabs.Screen
           name="index"
@@ -32,7 +37,7 @@ export default function Layout() {
           }}
         />
       </Tabs>
-    </StoreProvider>
+    </QueryClientProvider>
   )
 }
 

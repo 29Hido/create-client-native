@@ -1,43 +1,49 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import Book from '../types/Book';
 import { ENTRYPOINT } from '@/config/entrypoint';
+import Book from '../types/Book';
 
-export const bookApi = createApi({
-    reducerPath: 'bookApi',
-    baseQuery: fetchBaseQuery({ baseUrl: ENTRYPOINT }),
-    endpoints: builder => ({
-        getAll: builder.query<any, number>({
-            query: (page) => {
-                return `/books?page=${page}`
-            }
-        }),
-        delete: builder.mutation<any, string>({
-            query: (id) => {
-                return {
-                    url: `${id}`,
-                    method: 'DELETE'
-                }
-            }
-        }),
-        create: builder.mutation<any, Book>({
-            query: (book) => {
-                return {
-                    url: `/books`,
-                    method: 'POST',
-                    body: book,
-                }
-            }
-        }),
-        update: builder.mutation<any, Book>({
-            query: (book) => {
-                return {
-                    url: `${book['@id']}`,
-                    method: 'PUT',
-                    body: book,
-                }
-            }
-        }),
-    })
-});
+const ENDPOINT = `books`;
 
-export const { useLazyGetAllQuery, useDeleteMutation, useCreateMutation, useUpdateMutation } = bookApi;
+export function getAll(pageId: string) {
+    let page = parseInt(pageId);
+
+    if (page < 1 || isNaN(page)) {
+        page = 1;
+    }
+
+    return fetch(`${ENTRYPOINT}/${ENDPOINT}?page=${page}`).then(res => res.json());
+};
+
+export function update(data: Book): Promise<Response> {
+    return fetch(
+        `${ENTRYPOINT}${data['@id']}`,
+        {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+        }
+    )
+}
+
+export function create(data: Book): Promise<Response> {
+    return fetch(
+        `${ENTRYPOINT}/${ENDPOINT}`,
+        {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
+        }
+    )
+}
+
+export function remove(data: Book): Promise<Response> {
+    return fetch(
+        `${ENTRYPOINT}${data['@id']}`,
+        {
+            method: 'DELETE',
+        }
+    )
+}

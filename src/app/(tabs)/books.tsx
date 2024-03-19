@@ -2,44 +2,61 @@ import Main from "@/components/Main";
 import Navigation from "@/components/Navigation";
 import CreateEditModal from "@/components/book/CreateEditModal";
 import LogsRenderer from "@/components/book/LogsRenderer";
-import { useLazyGetAllQuery } from "@/lib/api/bookApi";
-import { useAppDispatch, useAppSelector } from "@/lib/hooks";
-import { setCurrentData, setData, setModalIsEdit, setModalIsVisible, setPage, setView } from "@/lib/slices/bookSlice";
 import Book from "@/lib/types/Book";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from '@tanstack/react-query'
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { getAll } from "@/lib/api/bookApi";
+import { HydraResponse } from "@/lib/types/HydraResponse";
+import { Log, LogType } from "@/lib/utils/Logs";
 
 export default function Books() {
-  const datas = useAppSelector(state => state.book.data);
-  const view = useAppSelector(state => state.book.view);
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
+  const [member, setMember] = useState([]);
+  const [view, setView] = useState({});
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalEdit, setIsModalEdit] = useState(false);
+  const [currentData, setCurrentData] = useState(undefined);
+  const [notifications, setNotifications] = useState([]);
 
-  const dispatch = useAppDispatch();
-  const [getAll] = useLazyGetAllQuery();
+  const { isSuccess, data } = useQuery<HydraResponse<Book>>({
+    queryKey: ['getAll', page],
+    queryFn: () => getAll(page),
+  })
+
+  useEffect(() => {
+    if (isSuccess) {
+      setMember(data["hydra:member"]);
+      setView(data['hydra:view']);
+    }
+  }, [isSuccess, data]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => setNotifications([]), 5000);
+
+    return () => clearTimeout(timeoutId);
+  }, [notifications]);
 
   const toggleEditModal = (data: Book) => {
-    dispatch(setCurrentData(data));
-    dispatch(setModalIsVisible(true));
-    dispatch(setModalIsEdit(true));
+    setCurrentData(data);
+    setIsModalVisible(true);
+    setIsModalEdit(true);
   };
 
   const toggleCreateModal = () => {
-    dispatch(setModalIsVisible(true));
-    dispatch(setModalIsEdit(false));
+    setIsModalVisible(true);
+    setIsModalEdit(false);
   }
 
-  useEffect(() => {
-    const intPage = parseInt(page);
-    if (intPage < 0) return;
-    dispatch(setPage(intPage));
-    getAll(intPage)
-      .unwrap()
-      .then(fulfilled => {
-        dispatch(setView(fulfilled["hydra:view"]));
-        dispatch(setData(fulfilled["hydra:member"]));
-      })
-  }, [page]);
+  const addNotification = (type: keyof LogType, message: string) => {
+    setNotifications([...notifications, new Log(type, message)]);
+  }
+
+  const clearNotifications = (type: keyof LogType) => {
+    console.log(type);
+    setNotifications([...notifications.filter(log => log.type !== type)]);
+  }
 
   return (
     <Main>
@@ -50,10 +67,10 @@ export default function Books() {
         </Pressable>
       </View>
       <ScrollView>
-        <LogsRenderer />
+        <LogsRenderer notifications={notifications} clearNotifications={clearNotifications} />
         <View>
           {
-            datas.map(data => (
+            member.map((data: Book) => (
               <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
                 <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
                   <Text>ID: {data['@id']}</Text>
@@ -65,7 +82,7 @@ export default function Books() {
             ))
           }
         </View>
-        <CreateEditModal />
+        <CreateEditModal addNotification={addNotification} isModalVisible={isModalVisible} isModalEdit={isModalEdit} data={currentData} setIsModalVisible={setIsModalVisible} />
       </ScrollView>
       <Navigation view={view} />
     </Main >

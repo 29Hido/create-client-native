@@ -1,25 +1,31 @@
-import { useCreateMutation, useLazyGetAllQuery, useUpdateMutation } from "@/lib/api/bookApi";
-import { createErrorLog, createSuccessLog } from "@/lib/factory/logFactory";
-import { useAppSelector } from "@/lib/hooks";
-import { addLog, setData, setModalIsVisible, setView } from "@/lib/slices/bookSlice";
 import Book from "@/lib/types/Book";
 import { useState } from "react";
 import { Controller, SubmitErrorHandler, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch } from "react-redux";
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { create, update } from "@/lib/api/bookApi";
+import { addNotificationFunction } from "@/lib/utils/Logs";
 
-export default function Form() {
-    const [update] = useUpdateMutation();
-    const [create] = useCreateMutation();
-    const [getAll] = useLazyGetAllQuery();
-    const bookData = useAppSelector(state => state.book);
-    const { page, currentData, modalState } = bookData;
-    const dispatch = useDispatch();
+export default function Form(props: { addNotification: addNotificationFunction, isModalEdit: boolean, data: Book, setIsModalVisible: Function }) {
     const [errors, setErrors] = useState([]);
-    const submitQuery = modalState.edit ? update : create;
+    const { isModalEdit, data, setIsModalVisible, addNotification } = props;
+    const queryClient = useQueryClient();
 
-    const initValues: Book = modalState.edit ? currentData : {
+    const queryFn = isModalEdit ? update : create;
+
+    const mutation = useMutation({
+        mutationFn: (data: Book) => queryFn(data),
+        onError: (error) => {
+            addNotification('error', error.toString());
+        },
+        onSuccess: () => {
+            addNotification('success', `The book has been ${isModalEdit ? 'updated' : 'created'}`);
+            queryClient.invalidateQueries({ queryKey: ['getAll'] });
+        }
+    });
+
+    const initValues: Book = (isModalEdit && data) ? data : {
         '@id': '',
         name: '',
         author: '',
@@ -33,26 +39,11 @@ export default function Form() {
 
     const onSubmit = (data: Book) => {
         intParser(data);
-        submitQuery(data)
-            .unwrap()
-            .then(() => {
-                dispatch(addLog(createSuccessLog(`The book has been ${modalState.edit ? 'edited' : 'created'} successfully.`)))
-                getAll(page)
-                    .unwrap()
-                    .then(fulfilled => {
-                        reset();
-                        dispatch(setView(fulfilled["hydra:view"]));
-                        dispatch(setData(fulfilled["hydra:member"]));
-                        dispatch(setModalIsVisible(false));
-                    });
-            })
-            .catch(error => {
-                if (error.data) {
-                    dispatch(
-                        addLog(createErrorLog(`Error : ${error.data["hydra:description"]}`))
-                    )
-                }
-            });
+
+        mutation.mutate(data);
+        setIsModalVisible(false);
+        reset();
+
         return;
     };
 
@@ -69,7 +60,6 @@ export default function Form() {
         setErrors(Object.keys(errors));
         return;
     }
-
 
     return (
         <SafeAreaView>
@@ -141,7 +131,7 @@ export default function Form() {
                 />
 
                 <Pressable onPress={handleSubmit(onSubmit, onError)}>
-                    <Text className="bg-cyan-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">{modalState.edit ? 'Edit' : 'Create'}</Text>
+                    <Text className="bg-cyan-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">{isModalEdit ? 'Edit' : 'Create'}</Text>
                 </Pressable>
             </View>
         </SafeAreaView>

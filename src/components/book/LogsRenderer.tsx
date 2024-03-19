@@ -1,12 +1,16 @@
-import { useAppSelector } from "@/lib/hooks";
-import { cleanLogs } from "@/lib/slices/bookSlice";
-import { Log } from "@/lib/types/Logs";
+import { Log, LogType, clearNotificationsFunction } from "@/lib/utils/Logs";
+import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
-import { useDispatch } from "react-redux";
 
-export default function LogsRenderer() {
-    const logs = useAppSelector(state => state.book.logs);
-    const { errors, successes } = logs;
+export default function LogsRenderer(props: { notifications: Array<Log>, clearNotifications: clearNotificationsFunction }) {
+    const { notifications, clearNotifications } = props;
+
+    const filterLogs = (type: keyof LogType) => {
+        return notifications.filter(log => log.type == type);
+    }
+
+    const errors = useMemo(() => filterLogs("error"), [notifications]);
+    const successes = useMemo(() => filterLogs("success"), [notifications]);
 
     return (
         <View>
@@ -14,34 +18,28 @@ export default function LogsRenderer() {
                 errors.length > 0 &&
                 <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-red-300" role="alert">
                     <View>
-                        {errors.map((error: string, index: number) => (
-                            <Text className="font-medium" key={index}>- {error}</Text>
+                        {errors.map((error: Log, index: number) => (
+                            <Text className="font-medium" key={index}>- {error.message}</Text>
                         ))}
                     </View>
-                    <CloseButton type="errors" />
+                    <Pressable onPress={() => clearNotifications('error')}>
+                        <Text className="text-black cursor-pointer text-sm font-bold py-2 px-4 rounded">X</Text>
+                    </Pressable >
                 </View>
             }
             {
                 successes.length > 0 &&
                 <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-green-300" role="alert">
                     <View>
-                        {successes.map((success: string, index: number) => (
-                            <Text className="font-medium" key={index}>- {success}</Text>
+                        {successes.map((success: Log, index: number) => (
+                            <Text className="font-medium" key={index}>- {success.message}</Text>
                         ))}
                     </View>
-                    <CloseButton type="successes" />
+                    <Pressable onPress={() => clearNotifications('success')}>
+                        <Text className="text-black cursor-pointer text-sm font-bold py-2 px-4 rounded">X</Text>
+                    </Pressable >
                 </View>
             }
         </View>
-    )
-}
-
-const CloseButton = (props: { type: keyof Log }) => {
-    const dispatch = useDispatch();
-
-    return (
-        <Pressable onPress={() => dispatch(cleanLogs(props.type))}>
-            <Text className="text-black cursor-pointer text-sm font-bold py-2 px-4 rounded">X</Text>
-        </Pressable>
     )
 }
