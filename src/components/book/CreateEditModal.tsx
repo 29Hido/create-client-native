@@ -2,15 +2,27 @@ import { Modal, Pressable, Text, View } from "react-native";
 import Form from "./Form";
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Book from "@/lib/types/Book";
-import { remove } from "@/lib/api/bookApi";
+import { notifyMercure, remove } from "@/lib/api/bookApi";
 import { addNotificationFunction } from "@/lib/utils/Logs";
-import { useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import ConfirmModal from "../ConfirmModal";
+import { mercureContext } from "@/lib/utils/mercureContext";
 
 export default function CreateEditModal(props: { addNotification: addNotificationFunction, isModalVisible: boolean, isModalEdit: boolean, data?: Book, setIsModalVisible: Function }) {
     const { addNotification, isModalVisible, isModalEdit, data, setIsModalVisible } = props;
     const [requestDelete, setRequestDelete] = useState(false);
     const queryClient = useQueryClient();
+    const { hubURL } = useContext(mercureContext);
+
+    const mercureMut = useMutation({
+        mutationFn: (data: Book) => notifyMercure(hubURL, data),
+        onError: (error: string) => {
+            console.log(error);
+        },
+        onSuccess: (data) => {
+            console.log(data);
+        },
+    })
 
     const deleteMutation = useMutation({
         mutationFn: (data: Book) => remove(data),
@@ -19,7 +31,13 @@ export default function CreateEditModal(props: { addNotification: addNotificatio
         },
         onSuccess: () => {
             addNotification('success', 'The book has been deleted');
-            queryClient.invalidateQueries({ queryKey: ['getAll'] });
+            if (hubURL) {
+                mercureMut.mutate({
+                    "@id": data["@id"]
+                });
+            } else {
+                queryClient.invalidateQueries({ queryKey: ['getAll'] });
+            }
         },
     });
 
@@ -44,9 +62,14 @@ export default function CreateEditModal(props: { addNotification: addNotificatio
                 style={styles.container}
             >
                 <View className="relative py-12 px-12">
+                    {data && data.deleted && <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-red-300" role="alert">
+                        <View>
+                            <Text>This resource has been deleted by another user</Text>
+                        </View>
+                    </View>}
                     <ConfirmModal isVisible={requestDelete} onAccept={onAccept} onDecline={onDecline} />
                     <Text className="text-2xl">{isModalEdit ? `Edit Book` : 'Create a new Book'}</Text>
-                    {<Form data={data} addNotification={addNotification} isModalEdit={isModalEdit} setIsModalVisible={setIsModalVisible} />}
+                    {<Form mercureMut={mercureMut} data={data} addNotification={addNotification} isModalEdit={isModalEdit} setIsModalVisible={setIsModalVisible} />}
                     {
                         isModalEdit &&
                         <Pressable onPress={() => setRequestDelete(true)}>

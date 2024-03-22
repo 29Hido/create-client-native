@@ -1,16 +1,19 @@
 import Book from "@/lib/types/Book";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Controller, SubmitErrorHandler, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { UseMutationResult, useMutation, useQueryClient } from '@tanstack/react-query'
 import { create, update } from "@/lib/api/bookApi";
 import { addNotificationFunction } from "@/lib/utils/Logs";
+import { mercureContext } from "@/lib/utils/mercureContext";
 
-export default function Form(props: { addNotification: addNotificationFunction, isModalEdit: boolean, data: Book, setIsModalVisible: Function }) {
+export default function Form(props: { mercureMut: UseMutationResult<Response, string, Book, unknown>, addNotification: addNotificationFunction, isModalEdit: boolean, data: Book, setIsModalVisible: Function }) {
     const [errors, setErrors] = useState([]);
-    const { isModalEdit, data, setIsModalVisible, addNotification } = props;
+    const [newData, setNewData] = useState<Nullable<Book>>(undefined);
+    const { isModalEdit, data, setIsModalVisible, addNotification, mercureMut } = props;
     const queryClient = useQueryClient();
+    const { hubURL } = useContext(mercureContext);
 
     const queryFn = isModalEdit ? update : create;
 
@@ -21,7 +24,11 @@ export default function Form(props: { addNotification: addNotificationFunction, 
         },
         onSuccess: () => {
             addNotification('success', `The book has been ${isModalEdit ? 'updated' : 'created'}`);
-            queryClient.invalidateQueries({ queryKey: ['getAll'] });
+            if (hubURL) {
+                mercureMut.mutate(newData);
+            } else {
+                queryClient.invalidateQueries({ queryKey: ['getAll'] });
+            }
         }
     });
 
@@ -39,12 +46,10 @@ export default function Form(props: { addNotification: addNotificationFunction, 
 
     const onSubmit = (data: Book) => {
         intParser(data);
-
+        setNewData(data);
         mutation.mutate(data);
         setIsModalVisible(false);
         reset();
-
-        return;
     };
 
     const intParser = (data: Book) => {
@@ -53,12 +58,14 @@ export default function Form(props: { addNotification: addNotificationFunction, 
                 data[key] = parseInt(data[key]);
             }
         });
-        return;
     }
 
     const onError: SubmitErrorHandler<Book> = (errors, e) => {
         setErrors(Object.keys(errors));
-        return;
+    }
+
+    if (data && data.deleted) {
+        return <></>;
     }
 
     return (

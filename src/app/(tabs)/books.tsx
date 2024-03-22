@@ -4,26 +4,53 @@ import CreateEditModal from "@/components/book/CreateEditModal";
 import LogsRenderer from "@/components/book/LogsRenderer";
 import Book from "@/lib/types/Book";
 import { useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from '@tanstack/react-query'
+import { useCallback, useContext, useEffect, useState } from "react";
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { getAll } from "@/lib/api/bookApi";
+import { getAll, notifyMercure } from "@/lib/api/bookApi";
 import { HydraResponse } from "@/lib/types/HydraResponse";
 import { Log, LogType } from "@/lib/utils/Logs";
+import { mercureSubscribe } from "@/common/utils/mercure";
+import { mercureContext } from "@/lib/utils/mercureContext";
 
 export default function Books() {
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
-  const [member, setMember] = useState([]);
+  const [member, setMember] = useState<Book[]>([]);
   const [view, setView] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalEdit, setIsModalEdit] = useState(false);
-  const [currentData, setCurrentData] = useState(undefined);
-  const [notifications, setNotifications] = useState([]);
+  const [currentData, setCurrentData] = useState<Nullable<Book>>(undefined);
+  const [notifications, setNotifications] = useState<Log[]>([]);
+  const [eventSource, setEventSource] = useState<Nullable<EventSource>>(undefined);
+
+  const { hubURL, setHubURL } = useContext(mercureContext);
+
+  const setData = useCallback((data: Book) => {
+    const currentMember = member.find(item => item["@id"] == data["@id"]);
+    if (currentMember) {
+      if (Object.keys(data).length == 1) {
+        data.deleted = true;
+      }
+      Object.assign(currentMember, data);
+      setMember([...member]); // force re-render
+    }
+  }, [member]);
+
+  useEffect(() => {
+    // @TODO retrieve HUB from API
+    setHubURL('http://localhost/.well-known/mercure');
+
+    if (hubURL) {
+      setEventSource(mercureSubscribe<Book>(new URL(hubURL), ['/books'], setData));
+    }
+
+    return () => eventSource && eventSource.close();
+  }, [hubURL, setData]);
 
   const { isSuccess, data } = useQuery<HydraResponse<Book>>({
     queryKey: ['getAll', page],
     queryFn: () => getAll(page),
-  })
+  });
 
   useEffect(() => {
     if (isSuccess) {
@@ -33,6 +60,7 @@ export default function Books() {
   }, [isSuccess, data]);
 
   useEffect(() => {
+    // remove notifications after 5 seconds (refreshed when new one appear)
     const timeoutId = setTimeout(() => setNotifications([]), 5000);
 
     return () => clearTimeout(timeoutId);
@@ -54,7 +82,6 @@ export default function Books() {
   }
 
   const clearNotifications = (type: keyof LogType) => {
-    console.log(type);
     setNotifications([...notifications.filter(log => log.type !== type)]);
   }
 
@@ -71,7 +98,7 @@ export default function Books() {
         <View>
           {
             member.map((data: Book) => (
-              <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
+              !data.deleted && <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
                 <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
                   <Text>ID: {data['@id']}</Text>
                   <Text>Title: {data.name}</Text>

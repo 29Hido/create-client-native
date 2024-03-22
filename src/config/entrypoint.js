@@ -1,1 +1,1 @@
-export const ENTRYPOINT = "http://localhost:80";
+export const ENTRYPOINT = "http://localhost:82";

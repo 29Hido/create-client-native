@@ -47,3 +47,17 @@ export function remove(data: Book): Promise<Response> {
         }
     )
 }
+
+export function notifyMercure(hubUrl: string, data: Book): Promise<Response> {
+    return fetch(`${hubUrl}`, {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOlsiKiJdfX0.2zzk5SIvgqP5N9ePrxVpQd7sX9aRVkNc4ICDglLhcwo"
+        },
+        body: new URLSearchParams({
+            'topic': `${ENTRYPOINT}/books`,
+            'data': JSON.stringify(data),
+        })
+    })
+}
