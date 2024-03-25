@@ -5,13 +5,12 @@ import LogsRenderer from "@/components/book/LogsRenderer";
 import Book from "@/lib/types/Book";
 import { useLocalSearchParams } from "expo-router";
 import { useCallback, useContext, useEffect, useState } from "react";
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { getAll, notifyMercure } from "@/lib/api/bookApi";
+import { getAll } from "@/lib/api/bookApi";
 import { HydraResponse } from "@/lib/types/HydraResponse";
 import { Log, LogType } from "@/lib/utils/Logs";
-import { mercureSubscribe } from "@/common/utils/mercure";
-import { mercureContext } from "@/lib/utils/mercureContext";
+import { mercureSubscribe } from "@/lib/utils/mercure";
 
 export default function Books() {
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
@@ -23,21 +22,24 @@ export default function Books() {
   const [notifications, setNotifications] = useState<Log[]>([]);
   const [eventSource, setEventSource] = useState<Nullable<EventSource>>(undefined);
 
-  const { hubURL, setHubURL } = useContext(mercureContext);
+  const [hubURL, setHubURL] = useState<Nullable<string>>(undefined);
 
   const setData = useCallback((data: Book) => {
     const currentMember = member.find(item => item["@id"] == data["@id"]);
+    if (Object.keys(data).length == 1) {
+      data.deleted = true;
+    }
+
     if (currentMember) {
-      if (Object.keys(data).length == 1) {
-        data.deleted = true;
-      }
       Object.assign(currentMember, data);
       setMember([...member]); // force re-render
+    } else {
+      setMember([...member, data]);
     }
   }, [member]);
 
   useEffect(() => {
-    // @TODO retrieve HUB from API
+
     setHubURL('http://localhost/.well-known/mercure');
 
     if (hubURL) {

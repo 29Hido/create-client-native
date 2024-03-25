@@ -11,7 +11,7 @@ services:
       MERCURE_SUBSCRIBER_JWT_KEY: 'key'
       EXTRA_DIRECTIVES: 'header Access-Control-Allow-Origin *'
       MERCURE_EXTRA_DIRECTIVES: |
-        cors_origins http://localhost:8081 http://localhost:5173
+        cors_origins http://localhost:8081 http://localhost:82
         anonymous
         demo
     # command: /usr/bin/caddy run --config /etc/caddy/Caddyfile.dev
