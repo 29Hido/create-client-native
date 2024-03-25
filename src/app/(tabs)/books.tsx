@@ -55,7 +55,7 @@ export default function Books() {
     return () => eventSource && eventSource.close();
   }, [hubURL, setData]);
 
-  const { isSuccess, data } = useQuery<HydraResponse<Book>>({
+  const { isSuccess, data, isLoading } = useQuery<HydraResponse<Book>>({
     queryKey: ['getAll', page],
     queryFn: () => getAll(page),
   });
@@ -93,6 +93,7 @@ export default function Books() {
     setNotifications([...notifications.filter(log => log.type !== type)]);
   }
 
+  // @TODO : Wrap scrollview inside a context for the modal
   return (
     <Main>
       <View className="py-3 flex flex-row items-center justify-between">
@@ -105,6 +106,9 @@ export default function Books() {
         <LogsRenderer notifications={notifications} clearNotifications={clearNotifications} />
         <View>
           {
+            member.length < 1 && (
+              isLoading && <Text className="text-1xl">Loading data...</Text> || <Text className="text-1xl text-red-500">No data found</Text>
+            ) ||
             member.map((data: Book) => (
               !data.deleted && <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
                 <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
