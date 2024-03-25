@@ -10,7 +10,8 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { getAll } from "@/lib/api/bookApi";
 import { HydraResponse } from "@/lib/types/HydraResponse";
 import { Log, LogType } from "@/lib/utils/Logs";
-import { mercureSubscribe } from "@/lib/utils/mercure";
+import { extractHubURL, mercureSubscribe } from "@/lib/utils/mercure";
+import { ENTRYPOINT } from "@/config/entrypoint";
 
 export default function Books() {
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
@@ -39,8 +40,13 @@ export default function Books() {
   }, [member]);
 
   useEffect(() => {
-
-    setHubURL('http://localhost/.well-known/mercure');
+    fetch(`${ENTRYPOINT}/books`)
+      .then(res => {
+        const extractedUrl = extractHubURL(res);
+        if (extractedUrl) {
+          setHubURL(extractedUrl.href);
+        }
+      });
 
     if (hubURL) {
       setEventSource(mercureSubscribe<Book>(new URL(hubURL), ['/books'], setData));
