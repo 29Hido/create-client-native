@@ -19,8 +19,12 @@ export default function CreateEditModal() {
         onError: (error: string) => {
             addNotification('error', error.toString());
         },
-        onSuccess: () => {
-            addNotification('success', 'The book has been deleted');
+        onSuccess: (data) => {
+            if (data.ok) {
+                addNotification('success', 'The book has been deleted');
+            } else {
+                addNotification('error', `An error occured while deleting the book (${data.statusText})`);
+            }
             queryClient.invalidateQueries({ queryKey: ['getAll'] });
         },
     });

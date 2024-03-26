@@ -21,8 +21,12 @@ export default function Form() {
         onError: (error) => {
             addNotification('error', error.toString());
         },
-        onSuccess: () => {
-            addNotification('success', `The book has been ${isModalEdit ? 'updated' : 'created'}`);
+        onSuccess: (data) => {
+            if (data.ok) {
+                addNotification('success', `The book has been ${isModalEdit ? 'updated' : 'created'}`);
+            } else {
+                addNotification('error', `An error occured while ${isModalEdit ? 'updating' : 'creating'} the book (${data.statusText})`);
+            }
             queryClient.invalidateQueries({ queryKey: ['getAll'] });
         }
     });
