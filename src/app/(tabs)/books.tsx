@@ -12,6 +12,7 @@ import { HydraResponse } from "@/lib/types/HydraResponse";
 import { Log, LogType } from "@/lib/utils/Logs";
 import { extractHubURL, mercureSubscribe } from "@/lib/utils/mercure";
 import { ENTRYPOINT } from "@/config/entrypoint";
+import { BookContext } from "@/components/book/Context";
 
 export default function Books() {
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
@@ -103,7 +104,6 @@ export default function Books() {
     setNotifications([...notifications.filter(log => log.type !== type)]);
   }
 
-  // @TODO : Wrap scrollview inside a context for the modal
   return (
     <Main>
       <View className="py-3 flex flex-row items-center justify-between">
@@ -112,36 +112,38 @@ export default function Books() {
           <Text className="bg-cyan-500 cursor-pointer text-white text-sm font-bold py-2 px-4 rounded">Create</Text>
         </Pressable>
       </View>
-      <ScrollView>
-        <LogsRenderer notifications={notifications} clearNotifications={clearNotifications} />
-        <View>
-          {
-            member && member.length < 1 &&
-            <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-cyan-300" role="alert">
-              <Text className="text-1xl">{isLoading ? 'Loading data...' : 'No data found'}</Text>
-            </View>
-          }
-          {
-            error &&
-            <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-red-300" role="alert">
-              <Text className="text-1xl">{error.message}</Text>
-            </View>
-          }
-          {
-            member && member.map((data: Book) => (
-              !data.deleted && <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
-                <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
-                  <Text>ID: {data['@id']}</Text>
-                  <Text>Title: {data.name}</Text>
-                  <Text>Author: {data.author}</Text>
-                  <Text>Rating: {data.rating}</Text>
-                </View>
-              </Pressable>
-            ))
-          }
-        </View>
-        <CreateEditModal addNotification={addNotification} isModalVisible={isModalVisible} isModalEdit={isModalEdit} data={currentData} setIsModalVisible={setIsModalVisible} />
-      </ScrollView>
+      <BookContext.Provider value={{ notifications, addNotification, clearNotifications, isModalVisible, isModalEdit, setIsModalVisible, currentData }}>
+        <ScrollView>
+          <LogsRenderer />
+          <View>
+            {
+              member && member.length < 1 &&
+              <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-cyan-300" role="alert">
+                <Text className="text-1xl">{isLoading ? 'Loading data...' : 'No data found'}</Text>
+              </View>
+            }
+            {
+              error &&
+              <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-red-300" role="alert">
+                <Text className="text-1xl">{error.message}</Text>
+              </View>
+            }
+            {
+              member && member.map((data: Book) => (
+                !data.deleted && <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
+                  <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
+                    <Text>ID: {data['@id']}</Text>
+                    <Text>Title: {data.name}</Text>
+                    <Text>Author: {data.author}</Text>
+                    <Text>Rating: {data.rating}</Text>
+                  </View>
+                </Pressable>
+              ))
+            }
+          </View>
+          <CreateEditModal />
+        </ScrollView>
+      </BookContext.Provider>
       <Navigation view={view} />
     </Main >
   );

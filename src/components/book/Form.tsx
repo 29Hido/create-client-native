@@ -1,16 +1,18 @@
 import Book from "@/lib/types/Book";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Controller, SubmitErrorHandler, useForm } from "react-hook-form";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { create, update } from "@/lib/api/bookApi";
-import { addNotificationFunction } from "@/lib/utils/Logs";
+import { BookContext } from "./Context";
 
-export default function Form(props: { addNotification: addNotificationFunction, isModalEdit: boolean, data: Book, setIsModalVisible: Function }) {
+export default function Form() {
     const [errors, setErrors] = useState([]);
-    const { isModalEdit, data, setIsModalVisible, addNotification } = props;
     const queryClient = useQueryClient();
+
+    const context = useContext(BookContext);
+    const { addNotification, isModalEdit, setIsModalVisible, currentData: data } = context;
 
     const queryFn = isModalEdit ? update : create;
 

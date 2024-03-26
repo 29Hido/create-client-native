@@ -1,9 +1,11 @@
-import { Log, LogType, clearNotificationsFunction } from "@/lib/utils/Logs";
-import { useMemo } from "react";
+import { Log, LogType } from "@/lib/utils/Logs";
+import { useContext, useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
+import { BookContext } from "./Context";
 
-export default function LogsRenderer(props: { notifications: Array<Log>, clearNotifications: clearNotificationsFunction }) {
-    const { notifications, clearNotifications } = props;
+export default function LogsRenderer() {
+    const context = useContext(BookContext);
+    const { notifications, clearNotifications } = context;
 
     const filterLogs = (type: keyof LogType) => {
         return notifications.filter(log => log.type == type);

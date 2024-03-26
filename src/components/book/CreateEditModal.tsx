@@ -3,14 +3,16 @@ import Form from "./Form";
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Book from "@/lib/types/Book";
 import { remove } from "@/lib/api/bookApi";
-import { addNotificationFunction } from "@/lib/utils/Logs";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import ConfirmModal from "../ConfirmModal";
+import { BookContext } from "./Context";
 
-export default function CreateEditModal(props: { addNotification: addNotificationFunction, isModalVisible: boolean, isModalEdit: boolean, data?: Book, setIsModalVisible: Function }) {
-    const { addNotification, isModalVisible, isModalEdit, data, setIsModalVisible } = props;
+export default function CreateEditModal() {
     const [requestDelete, setRequestDelete] = useState(false);
     const queryClient = useQueryClient();
+
+    const context = useContext(BookContext);
+    const { addNotification, setIsModalVisible, isModalEdit, isModalVisible, currentData: data } = context;
 
     const deleteMutation = useMutation({
         mutationFn: (data: Book) => remove(data),
@@ -54,7 +56,7 @@ export default function CreateEditModal(props: { addNotification: addNotificatio
                 <View className="relative py-12 px-12">
                     <ConfirmModal isVisible={requestDelete} onAccept={onAccept} onDecline={onDecline} />
                     <Text className="text-2xl">{isModalEdit ? `Edit Book` : 'Create a new Book'}</Text>
-                    {<Form data={data} addNotification={addNotification} isModalEdit={isModalEdit} setIsModalVisible={setIsModalVisible} />}
+                    <Form />
                     {
                         isModalEdit &&
                         <Pressable onPress={() => setRequestDelete(true)}>
