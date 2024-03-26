@@ -4,7 +4,7 @@ import CreateEditModal from "@/components/book/CreateEditModal";
 import LogsRenderer from "@/components/book/LogsRenderer";
 import Book from "@/lib/types/Book";
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery } from '@tanstack/react-query'
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { getAll } from "@/lib/api/bookApi";
@@ -15,6 +15,7 @@ import { ENTRYPOINT } from "@/config/entrypoint";
 
 export default function Books() {
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
+  const { id = undefined } = useLocalSearchParams<{ id: Nullable<string> }>();
   const [member, setMember] = useState<Book[]>([]);
   const [view, setView] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -55,7 +56,7 @@ export default function Books() {
     return () => eventSource && eventSource.close();
   }, [hubURL, setData]);
 
-  const { isSuccess, data, isLoading } = useQuery<HydraResponse<Book>>({
+  const { isSuccess, data, isLoading, error } = useQuery<HydraResponse<Book>>({
     queryKey: ['getAll', page],
     queryFn: () => getAll(page),
   });
@@ -66,6 +67,15 @@ export default function Books() {
       setView(data['hydra:view']);
     }
   }, [isSuccess, data]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const data = member.find(item => item["@id"].includes(id) == true);
+    if (data) {
+      toggleEditModal(data);
+    }
+  }, [member, id])
 
   useEffect(() => {
     // remove notifications after 5 seconds (refreshed when new one appear)
@@ -106,10 +116,19 @@ export default function Books() {
         <LogsRenderer notifications={notifications} clearNotifications={clearNotifications} />
         <View>
           {
-            member.length < 1 && (
-              isLoading && <Text className="text-1xl">Loading data...</Text> || <Text className="text-1xl text-red-500">No data found</Text>
-            ) ||
-            member.map((data: Book) => (
+            member && member.length < 1 &&
+            <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-cyan-300" role="alert">
+              <Text className="text-1xl">{isLoading ? 'Loading data...' : 'No data found'}</Text>
+            </View>
+          }
+          {
+            error &&
+            <View className="flex flex-row justify-between p-4 mb-4 text-sm rounded-lg bg-red-300" role="alert">
+              <Text className="text-1xl">{error.message}</Text>
+            </View>
+          }
+          {
+            member && member.map((data: Book) => (
               !data.deleted && <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
                 <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
                   <Text>ID: {data['@id']}</Text>
