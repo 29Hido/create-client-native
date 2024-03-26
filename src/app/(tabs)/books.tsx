@@ -4,58 +4,26 @@ import CreateEditModal from "@/components/book/CreateEditModal";
 import LogsRenderer from "@/components/book/LogsRenderer";
 import Book from "@/lib/types/Book";
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery } from '@tanstack/react-query'
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { getAll } from "@/lib/api/bookApi";
 import { HydraResponse } from "@/lib/types/HydraResponse";
-import { Log, LogType } from "@/lib/utils/Logs";
-import { extractHubURL, mercureSubscribe } from "@/lib/utils/mercure";
-import { ENTRYPOINT } from "@/config/entrypoint";
 import { BookContext } from "@/components/book/Context";
+import { useMercure } from "@/lib/hooks/mercure";
+import { useData } from "@/lib/hooks/data";
+import { useNotifications } from "@/lib/hooks/notifications";
+import { useModal } from "@/lib/hooks/modal";
 
 export default function Books() {
   const { page = '1' } = useLocalSearchParams<{ page: string }>();
   const { id = undefined } = useLocalSearchParams<{ id: Nullable<string> }>();
-  const [member, setMember] = useState<Book[]>([]);
-  const [view, setView] = useState({});
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isModalEdit, setIsModalEdit] = useState(false);
-  const [currentData, setCurrentData] = useState<Nullable<Book>>(undefined);
-  const [notifications, setNotifications] = useState<Log[]>([]);
-  const [eventSource, setEventSource] = useState<Nullable<EventSource>>(undefined);
 
-  const [hubURL, setHubURL] = useState<Nullable<string>>(undefined);
+  const { member, setMember, processMercureData, view, setView, currentData, setCurrentData } = useData<Book>();
+  const { notifications, addNotification, clearNotifications } = useNotifications();
+  const { isModalEdit, isModalVisible, toggleEditModal, toggleCreateModal, setIsModalVisible } = useModal();
 
-  const setData = useCallback((data: Book) => {
-    const currentMember = member.find(item => item["@id"] == data["@id"]);
-    if (Object.keys(data).length == 1) {
-      data.deleted = true;
-    }
-
-    if (currentMember) {
-      Object.assign(currentMember, data);
-      setMember([...member]); // force re-render
-    } else {
-      setMember([...member, data]);
-    }
-  }, [member]);
-
-  useEffect(() => {
-    fetch(`${ENTRYPOINT}/books`)
-      .then(res => {
-        const extractedUrl = extractHubURL(res);
-        if (extractedUrl) {
-          setHubURL(extractedUrl.href);
-        }
-      });
-
-    if (hubURL) {
-      setEventSource(mercureSubscribe<Book>(new URL(hubURL), ['/books'], setData));
-    }
-
-    return () => eventSource && eventSource.close();
-  }, [hubURL, setData]);
+  useMercure(['/books'], processMercureData);
 
   const { isSuccess, data, isLoading, error } = useQuery<HydraResponse<Book>>({
     queryKey: ['getAll', page],
@@ -74,35 +42,10 @@ export default function Books() {
 
     const data = member.find(item => item["@id"].includes(id) == true);
     if (data) {
-      toggleEditModal(data);
+      setCurrentData(data);
+      toggleEditModal();
     }
   }, [member, id])
-
-  useEffect(() => {
-    // remove notifications after 5 seconds (refreshed when new one appear)
-    const timeoutId = setTimeout(() => setNotifications([]), 5000);
-
-    return () => clearTimeout(timeoutId);
-  }, [notifications]);
-
-  const toggleEditModal = (data: Book) => {
-    setCurrentData(data);
-    setIsModalVisible(true);
-    setIsModalEdit(true);
-  };
-
-  const toggleCreateModal = () => {
-    setIsModalVisible(true);
-    setIsModalEdit(false);
-  }
-
-  const addNotification = (type: keyof LogType, message: string) => {
-    setNotifications([...notifications, new Log(type, message)]);
-  }
-
-  const clearNotifications = (type: keyof LogType) => {
-    setNotifications([...notifications.filter(log => log.type !== type)]);
-  }
 
   return (
     <Main>
@@ -130,7 +73,10 @@ export default function Books() {
             }
             {
               member && member.map((data: Book) => (
-                !data.deleted && <Pressable onPress={() => toggleEditModal(data)} key={data['@id']}>
+                !data.deleted && <Pressable onPress={() => {
+                  setCurrentData(data);
+                  toggleEditModal();
+                }} key={data['@id']}>
                   <View className="flex flex-column my-2 block max-w p-6 bg-white border border-gray-300 rounded shadow">
                     <Text>ID: {data['@id']}</Text>
                     <Text>Title: {data.name}</Text>
