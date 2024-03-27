@@ -10,7 +10,6 @@ type BookContextData = {
     isModalEdit: boolean;
     setIsModalVisible: (visible: boolean) => void;
     currentData?: Book;
-
 }
 
 export const BookContext = createContext<BookContextData>(null);

@@ -13,7 +13,6 @@ export default function Page() {
   );
 }
 
-
 const Header = (props: { title: string, subtitle?: string }) => {
   const { title, subtitle } = props;
   return (

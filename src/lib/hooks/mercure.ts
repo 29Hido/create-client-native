@@ -9,7 +9,6 @@ type useMercureType = {
 }
 
 export const useMercure = <T extends ApiResource>(topics: string[], setData: (data: T) => void): useMercureType => {
-
     const [hubURL, setHubURL] = useState<Nullable<string>>(undefined);
     const [eventSource, setEventSource] = useState<Nullable<EventSource>>(undefined);
     if (topics.length < 1) return { hubURL, eventSource };

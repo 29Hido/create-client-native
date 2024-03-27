@@ -10,10 +10,10 @@ type useNotificationsType = {
 
 export const useNotifications = (): useNotificationsType => {
     const [notifications, setNotifications] = useState<Log[]>([]);
+    const TIMEOUT_MS = 5000; // 5 secondes
 
     useEffect(() => {
-        // remove notifications after 5 seconds (refreshed when new one appear)
-        const timeoutId = setTimeout(() => setNotifications([]), 5000);
+        const timeoutId = setTimeout(() => setNotifications([]), TIMEOUT_MS);
 
         return () => clearTimeout(timeoutId);
     }, [notifications]);

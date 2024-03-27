@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React from 'react';
 import { FontAwesome } from "@expo/vector-icons";
 import "../global.css";
 import { Tabs } from "expo-router";
